@@ -1,0 +1,24 @@
+{
+  "name": "quickom-web3",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@metacraft/eslint-config": "^0.0.8",
+    "@metacraft/tsconfig": "^0.0.2",
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.11.29",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "eslint": "^8.57.0",
+    "prettier": "^3.2.5",
+    "sst": "^2.41.2",
+    "typescript": "^5.4.2"
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "extends": "@metacraft/tsconfig/base.json",
+  "include": [
+    "src",
+    "index*.js"
+  ],
+  "exclude": [
+    "node_modules"
+  ],
+  "compilerOptions": {
+    "resolveJsonModule": true,
+    "baseUrl": ".",
+    "paths": {
+      "assets/*": [
+        "./assets/*"
+      ],
+      "utils/*": [
+        "./src/utils/*"
+      ],
+      "components/*": [
+        "./src/components/*"
+      ],
+      "screens/*": [
+        "./src/screens/*"
+      ]
+    }
+  }
+}
+
