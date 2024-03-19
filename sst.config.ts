@@ -7,12 +7,12 @@ import { Api, Function } from 'sst/constructs';
 
 export const Relayer = ({ stack, app }: StackContext) => {
 	const environment = environmentFromStage(app.stage);
-	const handlerFunction = new Function(stack, 'relayer', {
-		handler: 'lambda.handler',
+	const handlerFunction = new Function(stack, 'relayer-func', {
+		handler: './lambda.handler',
 		environment,
 	});
 
-	const relayer = new Api(stack, 'relayer', {
+	const relayer = new Api(stack, 'relayer-api', {
 		cors: {
 			allowOrigins: ['*'],
 			allowHeaders: ['Content-Type', 'Authorization'],
