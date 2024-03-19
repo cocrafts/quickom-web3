@@ -13,3 +13,6 @@
 
 ### Conventions
 - Enable EsLint on your Code Editor/IDE, enable format-on-save to keep your code always in the right format
+
+### Project diagram
+![alt text](./documents/project-diagram.png "Project diagram")
