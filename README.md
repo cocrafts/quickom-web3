@@ -16,3 +16,26 @@
 
 ### Project diagram
 ![alt text](./documents/project-diagram.png "Project diagram")
+
+
+### Api endpoints
+- Use `send-reward` to command sending reward, see following endpoint/shape as reference:
+```bash
+curl --location 'https://71rvypwwrc.execute-api.ap-south-1.amazonaws.com/send-reward' \
+--header 'Content-Type: application/json' \
+--data '{
+    "walletAddress": "C8CAdCM27ad3W1XGW8CAbjJXoieesK1ggN8GQyAfn2vb",
+    "amount": "1000",
+    "resource": {
+        "time": 4321,
+        "banwhich": 1234
+    }
+}'
+```
+notes: `resource` field is absolutely optional, feel free to propose any shape that best fit Quickom interface.
+
+
+- Use `keypair` to get/generate Solana keypair, this would not store anything on the Relay, see following endpoint/shape as reference:
+```bash
+curl --location 'https://71rvypwwrc.execute-api.ap-south-1.amazonaws.com/keypair'
+```
