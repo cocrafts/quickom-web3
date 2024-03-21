@@ -1,7 +1,8 @@
 import cors from 'cors';
 import type { Express } from 'express';
 
-import { handleIncomingHook } from './resolvers/hook';
+import { handleGenerateKeyPair } from './resolvers/keypair';
+import { handleSendReward } from './resolvers/reward';
 
 /* eslint-disable-next-line */
 export const configure = async (express: any) => {
@@ -10,9 +11,18 @@ export const configure = async (express: any) => {
 	app.use(cors());
 	app.use(express.json());
 
-	app.post('/hook', async (req, res) => {
+	app.post('/send-reward', async (req, res) => {
 		try {
-			const result = await handleIncomingHook(req.body);
+			const result = await handleSendReward(req.body);
+			res.json(result);
+		} catch (error) {
+			return res.status(400).send({ error, message: String(error) });
+		}
+	});
+
+	app.get('/keypair', async (_req, res) => {
+		try {
+			const result = await handleGenerateKeyPair();
 			res.json(result);
 		} catch (error) {
 			return res.status(400).send({ error, message: String(error) });
