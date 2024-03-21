@@ -27,8 +27,8 @@ export const handleSendReward = async (payload: SendRewardPayload) => {
 
 	if (walletAddress === null) throw new Error('invalid wallet address');
 	return {
-		message: 'success, incoming hook called',
-		received: payload,
+		message: 'success, received send-reward command',
 		parsedAmount,
+		payload,
 	};
 };

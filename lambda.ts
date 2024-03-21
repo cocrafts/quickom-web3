@@ -11,14 +11,20 @@ const defaultHeaders = {
 
 /* eslint-disable-next-line */
 export const handler = async ({ body, rawPath, requestContext }: any) => {
+	let requestPayload = {};
 	const httpContext = requestContext?.http || {};
-	const payload = JSON.parse(body);
 	const requestPath = httpContext.path || rawPath;
 	console.log(httpContext.path, rawPath);
 
 	if (httpContext.method === 'POST') {
+		try {
+			requestPayload = JSON.parse(body);
+		} catch (error) {
+			console.log('failed to parse request body:', error);
+		}
+
 		if (requestPath === '/send-reward') {
-			return runResolver(() => handleSendReward(payload));
+			return runResolver(() => handleSendReward(requestPayload as never));
 		}
 	} else if (httpContext.method === 'GET') {
 		if (requestPath === '/keypair') {
