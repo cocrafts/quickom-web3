@@ -1,4 +1,5 @@
-import { handleIncomingHook } from './resolvers/hook';
+import { handleGenerateKeyPair } from './resolvers/keypair';
+import { handleSendReward } from './resolvers/reward';
 
 const defaultHeaders = {
 	'Content-Type': 'application/json',
@@ -9,14 +10,19 @@ const defaultHeaders = {
 };
 
 /* eslint-disable-next-line */
-export const handler = async (event: any) => {
-	const httpContext = event.requestContext?.http || {};
-	const body = event.body;
+export const handler = async ({ body, rawPath, requestContext }: any) => {
+	const httpContext = requestContext?.http || {};
 	const payload = JSON.parse(body);
+	const requestPath = httpContext.path || rawPath;
+	console.log(httpContext.path, rawPath);
 
 	if (httpContext.method === 'POST') {
-		if (httpContext.path === '/hook') {
-			return runResolver(() => handleIncomingHook(payload));
+		if (requestPath === '/send-reward') {
+			return runResolver(() => handleSendReward(payload));
+		}
+	} else if (httpContext.method === 'GET') {
+		if (requestPath === '/keypair') {
+			return runResolver(() => handleGenerateKeyPair());
 		}
 	}
 

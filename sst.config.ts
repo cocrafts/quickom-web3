@@ -19,7 +19,10 @@ export const Relayer = ({ stack, app }: StackContext) => {
 			allowMethods: ['GET', 'POST'],
 		},
 		routes: {
-			'POST /hook': {
+			'POST /send-reward': {
+				function: handlerFunction,
+			},
+			'GET /keypair': {
 				function: handlerFunction,
 			},
 		},
