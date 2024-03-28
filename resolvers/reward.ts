@@ -1,4 +1,17 @@
+import {
+	createTransferInstruction,
+	getOrCreateAssociatedTokenAccount,
+} from '@solana/spl-token';
+import {
+	Keypair,
+	PublicKey,
+	sendAndConfirmTransaction,
+	Transaction,
+} from '@solana/web3.js';
 import BN from 'bn.js';
+import { decode } from 'bs58';
+
+import config, { connection } from './config';
 
 export interface QuickomResource {
 	time?: number;
@@ -13,6 +26,7 @@ export interface SendRewardPayload {
 
 export const handleSendReward = async (payload: SendRewardPayload) => {
 	let parsedAmount: BN;
+	let transactionId: string;
 	const { amount, walletAddress } = payload;
 
 	if (!walletAddress) throw new Error('missing walletAddress param!');
@@ -21,7 +35,42 @@ export const handleSendReward = async (payload: SendRewardPayload) => {
 	try {
 		parsedAmount = new BN(amount);
 		console.log('parsedAmount', parsedAmount);
-	} catch {
+
+		if (!config.secretKey) throw new Error('missing secret key');
+		if (!config.mint) throw new Error('missing mint address');
+
+		const mintPubkey = new PublicKey(config.mint);
+		const keypair = Keypair.fromSecretKey(decode(config.secretKey as string));
+		const sourceATAddress = await getOrCreateAssociatedTokenAccount(
+			connection,
+			keypair,
+			mintPubkey,
+			keypair.publicKey,
+		);
+
+		const destinationWallet = new PublicKey(walletAddress);
+		const destinationATAddress = await getOrCreateAssociatedTokenAccount(
+			connection,
+			keypair,
+			mintPubkey,
+			destinationWallet,
+		);
+
+		const transaction = new Transaction().add(
+			createTransferInstruction(
+				sourceATAddress.address,
+				destinationATAddress.address,
+				keypair.publicKey,
+				parsedAmount,
+			),
+		);
+
+		transactionId = await sendAndConfirmTransaction(connection, transaction, [
+			keypair,
+		]);
+		console.log(transactionId);
+	} catch (err) {
+		console.log(err);
 		throw new Error('invalid amount, must be bn.js value in string!');
 	}
 
