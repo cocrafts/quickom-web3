@@ -4,6 +4,7 @@ import {
 } from '@solana/spl-token';
 import {
 	Keypair,
+	LAMPORTS_PER_SOL,
 	PublicKey,
 	sendAndConfirmTransaction,
 	Transaction,
@@ -32,13 +33,15 @@ export const handleSendReward = async (payload: SendRewardPayload) => {
 	if (!amount) throw new Error('missing amount param!');
 
 	try {
-		parsedAmount = new BN(amount);
+		parsedAmount = new BN(amount).mul(new BN(LAMPORTS_PER_SOL));
 
 		if (!config.secretKey) throw new Error('missing secret key');
 		if (!config.mint) throw new Error('missing mint address');
 
 		const mintPubkey = new PublicKey(config.mint);
-		const keypair = Keypair.fromSecretKey(decode(config.secretKey as string));
+		const keyBuffer = config.secretKey.split(',').map((i) => parseInt(i));
+		const keypair = Keypair.fromSecretKey(new Uint8Array(keyBuffer));
+
 		const sourceATAddress = await getOrCreateAssociatedTokenAccount(
 			connection,
 			keypair,
