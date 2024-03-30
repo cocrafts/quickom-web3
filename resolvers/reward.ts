@@ -9,7 +9,6 @@ import {
 	Transaction,
 } from '@solana/web3.js';
 import BN from 'bn.js';
-import { decode } from 'bs58';
 
 import config, { connection } from './config';
 
@@ -34,7 +33,6 @@ export const handleSendReward = async (payload: SendRewardPayload) => {
 
 	try {
 		parsedAmount = new BN(amount);
-		console.log('parsedAmount', parsedAmount);
 
 		if (!config.secretKey) throw new Error('missing secret key');
 		if (!config.mint) throw new Error('missing mint address');
@@ -61,7 +59,7 @@ export const handleSendReward = async (payload: SendRewardPayload) => {
 				sourceATAddress.address,
 				destinationATAddress.address,
 				keypair.publicKey,
-				parsedAmount,
+				parsedAmount as never,
 			),
 		);
 
@@ -76,8 +74,7 @@ export const handleSendReward = async (payload: SendRewardPayload) => {
 
 	if (walletAddress === null) throw new Error('invalid wallet address');
 	return {
-		message: 'success, received send-reward command',
-		parsedAmount,
-		payload,
+		message: `successfully send ${amount} $QKT to ${walletAddress}`,
+		transactionId,
 	};
 };
