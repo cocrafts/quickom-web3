@@ -25,7 +25,6 @@
     "typescript": "^5.4.2"
   },
   "dependencies": {
-    "@metacraft/cli": "^0.0.92",
     "@solana/spl-token": "^0.4.3",
     "@solana/web3.js": "^1.91.1",
     "@types/bn.js": "^5.1.5",

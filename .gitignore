@@ -1,4 +1,5 @@
 .DS_Store
 
+.env*
 .sst
 node_modules
