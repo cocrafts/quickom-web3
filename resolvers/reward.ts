@@ -33,7 +33,10 @@ export const handleSendReward = async (payload: SendRewardPayload) => {
 	if (!amount) throw new Error('missing amount param!');
 
 	try {
-		parsedAmount = new BN(amount).mul(new BN(LAMPORTS_PER_SOL));
+		const [primary, float] = amount.split('.');
+		const primaryLamports = new BN(primary).mul(new BN(LAMPORTS_PER_SOL));
+		const floatLamports = new BN(parseFloat(`0.${float}`) * LAMPORTS_PER_SOL);
+		parsedAmount = primaryLamports.add(floatLamports);
 
 		if (!config.secretKey) throw new Error('missing secret key');
 		if (!config.mint) throw new Error('missing mint address');
@@ -69,7 +72,6 @@ export const handleSendReward = async (payload: SendRewardPayload) => {
 		transactionId = await sendAndConfirmTransaction(connection, transaction, [
 			keypair,
 		]);
-		console.log(transactionId);
 	} catch (err) {
 		console.log(err);
 		throw new Error('invalid amount, must be bn.js value in string!');
