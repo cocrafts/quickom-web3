@@ -9,7 +9,7 @@ export const Relayer = ({ stack, app }: StackContext) => {
 	const environment = environmentFromStage(app.stage);
 	const handlerFunction = new Function(stack, 'relayer-func', {
 		handler: './lambda.handler',
-		timeout: '30 seconds',
+		timeout: '5 minutes',
 		runtime: 'nodejs20.x',
 		architecture: 'arm_64',
 		environment,

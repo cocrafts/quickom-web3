@@ -1,5 +1,5 @@
 import { handleGenerateKeyPair } from './resolvers/keypair';
-import { handleSendReward } from './resolvers/reward';
+import { handleEstimateFee, handleSendReward } from './resolvers/reward';
 
 const defaultHeaders = {
 	'Content-Type': 'application/json',
@@ -25,6 +25,8 @@ export const handler = async ({ body, rawPath, requestContext }: any) => {
 
 		if (requestPath === '/send-reward') {
 			return runResolver(() => handleSendReward(requestPayload as never));
+		} else if (requestPath === '/estimate-fee') {
+			return runResolver(() => handleEstimateFee(requestPayload as never));
 		}
 	} else if (httpContext.method === 'GET') {
 		if (requestPath === '/keypair') {

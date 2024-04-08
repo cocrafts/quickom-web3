@@ -1,5 +1,7 @@
 import {
+	ACCOUNT_SIZE,
 	createTransferInstruction,
+	getAssociatedTokenAddress,
 	getOrCreateAssociatedTokenAccount,
 } from '@solana/spl-token';
 import {
@@ -11,6 +13,7 @@ import {
 } from '@solana/web3.js';
 import BN from 'bn.js';
 
+import type { Config } from './config';
 import config, { connection } from './config';
 
 export interface QuickomResource {
@@ -25,24 +28,13 @@ export interface SendRewardPayload {
 }
 
 export const handleSendReward = async (payload: SendRewardPayload) => {
-	let parsedAmount: BN;
-	let transactionId: string;
-	const { amount, walletAddress } = payload;
-
-	if (!walletAddress) throw new Error('missing walletAddress param!');
-	if (!amount) throw new Error('missing amount param!');
+	const { secretKey, mint } = validateConfig(config);
+	const { amount, walletAddress } = validateSendRewardPayload(payload);
 
 	try {
-		const [primary, float] = amount.split('.');
-		const primaryLamports = new BN(primary).mul(new BN(LAMPORTS_PER_SOL));
-		const floatLamports = new BN(parseFloat(`0.${float}`) * LAMPORTS_PER_SOL);
-		parsedAmount = primaryLamports.add(floatLamports);
-
-		if (!config.secretKey) throw new Error('missing secret key');
-		if (!config.mint) throw new Error('missing mint address');
-
-		const mintPubkey = new PublicKey(config.mint);
-		const keyBuffer = config.secretKey.split(',').map((i) => parseInt(i));
+		const parsedAmount = parseTransactionAmount(amount);
+		const mintPubkey = new PublicKey(mint);
+		const keyBuffer = secretKey.split(',').map((i) => parseInt(i));
 		const keypair = Keypair.fromSecretKey(new Uint8Array(keyBuffer));
 
 		const sourceATAddress = await getOrCreateAssociatedTokenAccount(
@@ -60,26 +52,117 @@ export const handleSendReward = async (payload: SendRewardPayload) => {
 			destinationWallet,
 		);
 
-		const transaction = new Transaction().add(
-			createTransferInstruction(
-				sourceATAddress.address,
-				destinationATAddress.address,
-				keypair.publicKey,
-				parsedAmount as never,
-			),
+		const instruction = createTransferInstruction(
+			sourceATAddress.address,
+			destinationATAddress.address,
+			keypair.publicKey,
+			parsedAmount as never,
+		);
+		const transaction = new Transaction().add(instruction);
+		await injectTransactionField(transaction, { feePayer: keypair.publicKey });
+
+		const transactionId = await sendAndConfirmTransaction(
+			connection,
+			transaction,
+			[keypair],
 		);
 
-		transactionId = await sendAndConfirmTransaction(connection, transaction, [
-			keypair,
-		]);
+		return {
+			message: `successfully send ${amount} $QKT to ${walletAddress}`,
+			transactionId,
+		};
 	} catch (err) {
 		console.log(err);
-		throw new Error('invalid amount, must be bn.js value in string!');
+		throw new Error('something went wrong during gas estimation');
+	}
+};
+
+export const handleEstimateFee = async (payload: SendRewardPayload) => {
+	let accumulatedFee = 0;
+	const { secretKey, mint } = validateConfig(config);
+	const { amount, walletAddress } = validateSendRewardPayload(payload);
+
+	try {
+		const parsedAmount = parseTransactionAmount(amount);
+		const mintPubkey = new PublicKey(mint);
+		const keyBuffer = secretKey.split(',').map((i) => parseInt(i));
+		const keypair = Keypair.fromSecretKey(new Uint8Array(keyBuffer));
+
+		const associatedAddress = await getAssociatedTokenAddress(
+			mintPubkey,
+			new PublicKey(walletAddress),
+		);
+		const accountInfo = await connection.getAccountInfo(associatedAddress);
+
+		if (!accountInfo) {
+			const rentFee =
+				await connection.getMinimumBalanceForRentExemption(ACCOUNT_SIZE);
+			accumulatedFee += rentFee || 0;
+		}
+
+		const sourceATAddress = await getAssociatedTokenAddress(
+			mintPubkey,
+			keypair.publicKey,
+		);
+
+		const destinationATAddress = await getAssociatedTokenAddress(
+			mintPubkey,
+			new PublicKey(walletAddress),
+		);
+
+		const instruction = createTransferInstruction(
+			sourceATAddress,
+			destinationATAddress,
+			keypair.publicKey,
+			parsedAmount as never,
+		);
+		const transaction = new Transaction().add(instruction);
+		await injectTransactionField(transaction, { feePayer: keypair.publicKey });
+
+		const transactionFee = await transaction.getEstimatedFee(connection);
+		accumulatedFee += transactionFee || 0;
+
+		return accumulatedFee / LAMPORTS_PER_SOL;
+	} catch (err) {
+		console.log(err);
+		throw new Error('something went wrong during gas estimation');
+	}
+};
+
+export const injectTransactionField = async (
+	transaction: Transaction,
+	fields: object,
+): Promise<Transaction> => {
+	const { blockhash } = await connection.getLatestBlockhash();
+	transaction.recentBlockhash = blockhash;
+
+	for (const key in fields) {
+		transaction[key] = fields[key];
 	}
 
-	if (walletAddress === null) throw new Error('invalid wallet address');
-	return {
-		message: `successfully send ${amount} $QKT to ${walletAddress}`,
-		transactionId,
-	};
+	return transaction;
+};
+
+export const validateSendRewardPayload = (
+	value: SendRewardPayload,
+): SendRewardPayload => {
+	if (!value.walletAddress) throw new Error('missing walletAddress param!');
+	if (!value.amount) throw new Error('missing amount param!');
+
+	return value;
+};
+
+export const validateConfig = (value: Config): Config => {
+	if (!value.secretKey) throw new Error('missing secret key');
+	if (!value.mint) throw new Error('missing mint address');
+
+	return value;
+};
+
+export const parseTransactionAmount = (amount: string): BN => {
+	const [primary, float] = amount.split('.');
+	const primaryLamports = new BN(primary).mul(new BN(LAMPORTS_PER_SOL));
+	const floatLamports = new BN(parseFloat(`0.${float}`) * LAMPORTS_PER_SOL);
+
+	return primaryLamports.add(floatLamports);
 };
