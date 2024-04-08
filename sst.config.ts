@@ -26,6 +26,9 @@ export const Relayer = ({ stack, app }: StackContext) => {
 			'POST /send-reward': {
 				function: handlerFunction,
 			},
+			'POST /estimate-fee': {
+				function: handlerFunction,
+			},
 			'GET /keypair': {
 				function: handlerFunction,
 			},

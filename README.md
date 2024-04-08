@@ -35,6 +35,17 @@ curl --location 'https://71rvypwwrc.execute-api.ap-south-1.amazonaws.com/send-re
 notes: `resource` field is absolutely optional, feel free to propose any shape that best fit Quickom interface.
 
 
+- use `estimate-fee` to estimate fee for the transaction before actually calling it, have the same param/args as `send-reward`:
+```bash
+curl --location 'https://71rvypwwrc.execute-api.ap-south-1.amazonaws.com/estimate-fee' \
+--header 'Content-Type: application/json' \
+--data '{
+    "walletAddress": "C8CAdCM27ad3W1XGW8CAbjJXoieesK1ggN8GQyAfn2vb",
+    "amount": "2.5"
+}'
+```
+
+
 - Use `keypair` to get/generate Solana keypair, this would not store anything on the Relay, see following endpoint/shape as reference:
 ```bash
 curl --location 'https://71rvypwwrc.execute-api.ap-south-1.amazonaws.com/keypair'

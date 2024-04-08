@@ -122,7 +122,9 @@ export const handleEstimateFee = async (payload: SendRewardPayload) => {
 		const transactionFee = await transaction.getEstimatedFee(connection);
 		accumulatedFee += transactionFee || 0;
 
-		return accumulatedFee / LAMPORTS_PER_SOL;
+		return {
+			fee: accumulatedFee / LAMPORTS_PER_SOL,
+		};
 	} catch (err) {
 		console.log(err);
 		throw new Error('something went wrong during gas estimation');
